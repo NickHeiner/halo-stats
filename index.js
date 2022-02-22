@@ -2,25 +2,25 @@ const _ = require('lodash');
 const lib = require('lib')({token: process.env.AUTOCODE_TOKEN});
 
 const gamertags = ['PhantomTheoden', 'TheDaringDuke', 'dogwaterwifi924'];
-// const gamertags = ['PhantomTheoden'];
-const gamesToFetch = 25;
 
-// We need to page back to get more games.
 async function fetchFeedForPlayer(gamertag) {
-  const result = await lib.halo.infinite['@0.3.8'].stats.matches.list({
-    gamertag, // required
-    limit: {
-      count: gamesToFetch,
-      offset: 0
-    },
-    mode: 'matchmade'
-  });
-  return result;
+  const maxPageSize = 25;
+  const pagesToFetch = 4;
+
+  return (await Promise.all(_.range(pagesToFetch).map(pageIndex => 
+    lib.halo.infinite['@0.3.8'].stats.matches.list({
+      gamertag, // required
+      limit: {
+        count: maxPageSize,
+        offset: maxPageSize * pageIndex
+      },
+      mode: 'matchmade'
+    })))).flatMap(({data}) => data);
 }
 
 async function main() {
   // const allGames = Promise.all(gamertags.map(async gamertag => [gamertag, await fetchFeedForPlayer(gamertag)]));
-  const allGames = (await Promise.all(gamertags.map(fetchFeedForPlayer))).map(res => res.data);
+  const allGames = await Promise.all(gamertags.map(fetchFeedForPlayer));
   // const allGames = await Promise.all(gamertags.map(fetchFeedForPlayer));
   // console.log(allGames);
 
