@@ -1,0 +1,32 @@
+{
+  "dependencies": {
+    "lib": "^4.3.3"
+  },
+  "scripts": {
+    "lint": "eslint index.js --max-warnings 0",
+    "lint:fix": "yarn run lint --fix",
+    "test": "yarn run lint"
+  },
+  "eslintConfig": {
+    "env": {
+      "es6": true,
+      "node": true
+    },
+    "rules": {
+      "no-console": "off",
+      "no-use-before-define": [
+        "error",
+        {
+          "functions": false
+        }
+      ]
+    },
+    "extends": [
+      "nth"
+    ]
+  },
+  "devDependencies": {
+    "eslint": "^8.9.0",
+    "eslint-config-nth": "^2.0.1"
+  }
+}
