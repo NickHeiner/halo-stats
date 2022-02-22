@@ -1,11 +1,12 @@
 const _ = require('lodash');
 const lib = require('lib')({token: process.env.AUTOCODE_TOKEN});
+const {stringify: csvStringify} = require('csv-stringify/sync');
 
 const gamertags = ['PhantomTheoden', 'TheDaringDuke', 'dogwaterwifi924'];
 
 async function fetchFeedForPlayer(gamertag) {
   const maxPageSize = 25;
-  const pagesToFetch = 4;
+  const pagesToFetch = 20;
 
   return (await Promise.all(_.range(pagesToFetch).map(pageIndex => 
     lib.halo.infinite['@0.3.8'].stats.matches.list({
@@ -65,6 +66,8 @@ async function main() {
 
       return {
         Id: game.id,
+        'Halo Tracker Link': `https://halotracker.com/halo-infinite/match/${game.id}`,
+        'Game Start': game.played_at,
         Map: game.details.map.name,
         Gametype: game.details.category.name,
         Outcome: playerEntryForPlayer(gamertags[0]).outcome,
@@ -73,7 +76,11 @@ async function main() {
     })
     .value();
 
-  console.log(forCSV);
+  const csv = csvStringify(forCSV, {
+    header: true
+  });
+
+  console.log(csv);
 }
 
 main();
