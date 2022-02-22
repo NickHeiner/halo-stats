@@ -38,26 +38,37 @@ async function main() {
       const playerEntryForPlayer = gamertag => _.find(game.players, {gamertag});
 
       const perPlayerStats = _(gamertags)
-        .flatMap(gamertag => {
+        .map(gamertag => {
           const playerEntry = playerEntryForPlayer(gamertag);
-          // return [gamertag, {
-          //   kda: 
-          // }]
-
-          return [
-            [`${gamertag} KDA`, playerEntry.stats.core.kda],
-            [`${gamertag} Rank Progression`, playerEntry.progression.csr.post_match.value - playerEntry.progression.csr.pre_match.value]
-          ];
+          return [gamertag, {
+            kda: playerEntry.stats.core.kda,
+            rankProgression: playerEntry.progression.csr.post_match.value - playerEntry.progression.csr.pre_match.value
+          }];
         })
         .fromPairs()
         .value();
+
+      const getAggregateStats = statName => _(perPlayerStats).mapValues(statName).values().mean();
+
+      const aggregatePlayerStats = _(perPlayerStats[gamertags[0]])
+        .mapValues((_value, statName) => getAggregateStats(statName))
+        .value();
+      const playerAndAggregateStats = {
+        ...perPlayerStats,
+        Average: aggregatePlayerStats
+      };
+      const playerColumns = _.reduce(playerAndAggregateStats, (acc, stats, gamertag) => ({
+        ...acc,
+        [`${gamertag} KDA`]: stats.kda,
+        [`${gamertag} Rank Progression`]: stats.rankProgression
+      }), {});
 
       return {
         Id: game.id,
         Map: game.details.map.name,
         Gametype: game.details.category.name,
         Outcome: playerEntryForPlayer(gamertags[0]).outcome,
-        ...perPlayerStats
+        ...playerColumns
       };
     })
     .value();
